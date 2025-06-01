@@ -148,10 +148,18 @@ static inline uint16_t i8080_pop_stack(i8080* const c) {
 
 // returns the parity of byte: 0 if number of 1 bits in `val` is odd, else 1
 static inline bool parity(uint8_t val) {
-  uint8_t nb_one_bits = 0;
-  for (int i = 0; i < 8; i++) {
-    nb_one_bits += ((val >> i) & 1);
-  }
+#ifdef __GNUC__
+	return !__builtin_parity(val);
+#else
+	bool parity=false;
+	while(val){
+		parity=!parity;
+		val=val&(val-1);
+	}
+	return !parity;
+#endif
+}
+
 
   return (nb_one_bits & 1) == 0;
 }
