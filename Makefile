@@ -10,6 +10,7 @@ all: $(bin)
 
 $(bin): $(obj)
 	$(CC) -o $@ $^ $(LDFLAGS)
+	@size $@
 
 clean:
 	-rm $(bin) $(obj)
