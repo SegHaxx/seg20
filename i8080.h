@@ -15,14 +15,13 @@ typedef struct i8080 {
   unsigned long cyc; // cycle count
 
   uint16_t pc, sp; // program counter, stack pointer
-  uint8_t a, b, c, d, e, h, l; // registers
-  // flags: sign, zero, half-carry, parity, carry, interrupt flip-flop
-  bool sf : 1, zf : 1, hf : 1, pf : 1, cf : 1, iff : 1;
-  bool halted : 1;
-
-  bool interrupt_pending : 1;
+  uint8_t a, b, c, d, e, h, l, flags; // registers
   uint8_t interrupt_vector;
   uint8_t interrupt_delay;
+  // flags: sign, zero, half-carry, parity, carry, interrupt flip-flop
+  bool cf, iff;
+  bool halted;
+  bool interrupt_pending;
 } i8080;
 
 void i8080_init(i8080* const c);
