@@ -1,0 +1,23 @@
+PREFIX=i586-pc-msdosdjgpp
+CC=$(PREFIX)-gcc
+
+CFLAGS = -g -Wall -pedantic -O3
+LDFLAGS =
+
+bin = 8080TEST.EXE
+src = $(wildcard *.c)
+obj = $(src:.c=.o)
+
+.PHONY: all clean install
+
+all: $(bin)
+
+$(bin): i8080_tests.c
+	$(CC) -o $@ $^ $(LDFLAGS)
+	@$(PREFIX)-size $@
+
+clean:
+	-rm $(bin) $(obj)
+
+install: $(bin)
+	cp -p $^ ~/Emulation/DOS/C/code/8080/

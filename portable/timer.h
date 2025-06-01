@@ -25,7 +25,7 @@
 #endif
 
 #ifdef __DJGPP__
-SHL long long time_msec(){return uclock();}
+SHL long long time_msec(){return uclock()/(UCLOCKS_PER_SEC/1000);}
 #endif
 
 #ifdef __MINT__ // Atari ST TOS
