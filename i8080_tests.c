@@ -24,12 +24,11 @@ static uint8_t port_in(void* userdata, uint8_t port) {
   return 0x00;
 }
 
-static void port_out(void* userdata, uint8_t port, uint8_t value) {
+static bool port_out(void* userdata, uint8_t port, uint8_t value) {
   i8080* const c = (i8080*) userdata;
 
-  if (port == 0) {
-    test_finished = 1;
-  } else if (port == 1) {
+  if(port==0){test_finished=1;return false;}
+  if (port == 1) {
     uint8_t operation = c->c;
 
     if (operation == 2) { // print a character stored in E
@@ -41,6 +40,7 @@ static void port_out(void* userdata, uint8_t port, uint8_t value) {
       } while (rb(c, addr) != '$');
     }
   }
+  return true;
 }
 
 static inline int load_file(const char* filename, uint16_t addr) {
@@ -71,8 +71,10 @@ static inline int load_file(const char* filename, uint16_t addr) {
   return 0;
 }
 
+#include "portable/timer.h"
+
 static inline void run_test(
-    i8080* const c, const char* filename, unsigned long cyc_expected) {
+    i8080* const c, const char* filename, unsigned long long cyc_expected) {
   i8080_init(c);
   c->userdata = c;
   c->read_byte = rb;
@@ -97,23 +99,22 @@ static inline void run_test(
   memory[0x0006] = 0x01;
   memory[0x0007] = 0xC9;
 
-  long nb_instructions = 0;
-
+  long long ticks=time_msec();
   test_finished = 0;
-  while (!test_finished) {
-    nb_instructions += 1;
 
     // uncomment following line to have a debug output of machine state
     // warning: will output multiple GB of data for the whole test suite
     // i8080_debug_output(c, false);
 
-    i8080_step(c);
-  }
+	long nb_instructions=i8080_run(c);
+  ticks=time_msec()-ticks;
 
   long long diff = cyc_expected - c->cyc;
   printf("\n*** %lu instructions executed on %lu cycles"
-         " (expected=%lu, diff=%lld)\n\n",
+         " (expected=%llu, diff=%lld)\n",
       nb_instructions, c->cyc, cyc_expected, diff);
+  double seconds=(double)ticks/1000.0;
+  printf("%.2f sec %.2f cycles/sec\n\n",seconds,(double)c->cyc/seconds);
 }
 
 int main(void) {

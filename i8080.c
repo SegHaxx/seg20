@@ -374,7 +374,7 @@ static inline void i8080_xthl(i8080* const c) {
 }
 
 // executes one opcode
-static inline void i8080_execute(i8080* const c, uint8_t opcode) {
+static inline bool i8080_execute(i8080* const c, uint8_t opcode) {
   c->cyc += OPCODES_CYCLES[opcode];
 
   // when DI is executed, interrupts won't be serviced
@@ -679,8 +679,11 @@ static inline void i8080_execute(i8080* const c, uint8_t opcode) {
   case 0xF1: i8080_pop_psw(c); break; // POP PSW
 
   case 0xDB: c->a = c->port_in(c->userdata, i8080_next_byte(c)); break; // IN
-  case 0xD3: c->port_out(c->userdata, i8080_next_byte(c), c->a); break; // OUT
-
+  case 0xD3: // OUT
+				 if(!c->port_out(c->userdata, i8080_next_byte(c), c->a)){
+					 return false;
+				 }
+				 break;
   case 0x08:
   case 0x10:
   case 0x18:
@@ -697,6 +700,7 @@ static inline void i8080_execute(i8080* const c, uint8_t opcode) {
 
   case 0xCB: i8080_jmp(c, i8080_next_word(c)); break; // undocumented JMP
   }
+  return true;
 }
 
 // initialises the emulator with default values
@@ -733,19 +737,26 @@ void i8080_init(i8080* const c) {
   c->interrupt_delay = 0;
 }
 
-// executes one instruction
-void i8080_step(i8080* const c) {
-  // interrupt processing: if an interrupt is pending and IFF is set,
-  // we execute the interrupt vector passed by the user.
-  if (c->interrupt_pending && c->iff && c->interrupt_delay == 0) {
-    c->interrupt_pending = 0;
-    c->iff = 0;
-    c->halted = 0;
+// 
+long i8080_run(i8080* const c) {
+	long count=0;
+	while(1){
+		uint8_t opcode;
+		// interrupt processing: if an interrupt is pending and IFF is set,
+		// we execute the interrupt vector passed by the user.
+		if (c->interrupt_pending && c->iff && c->interrupt_delay == 0) {
+			c->interrupt_pending = 0;
+			c->iff = 0;
+			c->halted = 0;
 
-    i8080_execute(c, c->interrupt_vector);
-  } else if (!c->halted) {
-    i8080_execute(c, i8080_next_byte(c));
-  }
+			opcode=c->interrupt_vector;
+		}else{
+			if (c->halted) continue;
+			opcode=i8080_next_byte(c);
+		}
+		++count;
+		if(!i8080_execute(c,opcode)) return count;
+	}
 }
 
 // asks for an interrupt to be serviced
