@@ -6,6 +6,7 @@
 #include <string.h>
 #include <time.h>
 #include "i8080.h"
+#include "i8080.c"
 
 // memory callbacks
 #define MEMORY_SIZE 0x10000
