@@ -81,8 +81,7 @@ static inline void run_test(
     i8080* const c, const char* filename, unsigned long long cyc_expected) {
   i8080_init(c);
   c->userdata = c;
-  c->read_byte = rb;
-  c->write_byte = wb;
+  c->mem=memory;
   c->port_in = port_in;
   c->port_out = port_out;
   memset(memory, 0, MEMORY_SIZE);

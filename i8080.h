@@ -7,8 +7,7 @@
 
 typedef struct i8080 {
   // memory + io interface
-  uint8_t (*read_byte)(void*, uint16_t); // user function to read from memory
-  void (*write_byte)(void*, uint16_t, uint8_t); // same for writing to memory
+  uint8_t* mem;
   uint8_t (*port_in)(void*, uint8_t); // user function to read from port
   bool (*port_out)(void*, uint8_t, uint8_t); // same for writing to port
   void* userdata; // user custom pointer

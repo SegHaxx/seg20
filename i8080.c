@@ -71,24 +71,22 @@ static const char* DISASSEMBLE_TABLE[] = {"nop", "lxi b,#", "stax b", "inx b",
 
 // reads a byte from memory
 static inline uint8_t i8080_rb(i8080* const c, uint16_t addr) {
-  return c->read_byte(c->userdata, addr);
+  return c->mem[addr];
 }
 
 // writes a byte to memory
 static inline void i8080_wb(i8080* const c, uint16_t addr, uint8_t val) {
-  c->write_byte(c->userdata, addr, val);
+  c->mem[addr]=val;
 }
 
 // reads a word from memory
 static inline uint16_t i8080_rw(i8080* const c, uint16_t addr) {
-  return c->read_byte(c->userdata, addr + 1) << 8 |
-         c->read_byte(c->userdata, addr);
+  return c->mem[addr+1] << 8 | c->mem[addr];
 }
 
 // writes a word to memory
 static inline void i8080_ww(i8080* const c, uint16_t addr, uint16_t val) {
-  c->write_byte(c->userdata, addr, val & 0xFF);
-  c->write_byte(c->userdata, addr + 1, val >> 8);
+  c->mem[addr]=val&0xFF;c->mem[addr+1]=val>>8;
 }
 
 // returns the next byte in memory (and updates the program counter)
@@ -705,8 +703,6 @@ static inline bool i8080_execute(i8080* const c, uint8_t opcode) {
 
 // initialises the emulator with default values
 void i8080_init(i8080* const c) {
-  c->read_byte = NULL;
-  c->write_byte = NULL;
   c->port_in = NULL;
   c->port_out = NULL;
   c->userdata = NULL;
