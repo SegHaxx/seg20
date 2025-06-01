@@ -6,3 +6,5 @@ cpu_tests/sunhillow
 TODO.md
 *.exe
 *.EXE
+*.TOS
+*.PRG
