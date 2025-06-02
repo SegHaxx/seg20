@@ -13,7 +13,7 @@ obj = $(src:.c=.o)
 all: $(bin)
 
 $(bin): i8080_tests.c
-	$(CC) -o $@ $^ $(LDFLAGS)
+	$(CC) $(CFLAGS) -o $@ $^ $(LDFLAGS)
 	@$(PREFIX)-size $@
 
 clean:

@@ -9,7 +9,7 @@ LDFLAGS =
 all: $(bin)
 
 $(bin): i8080_tests.c
-	$(CC) -o $@ $^ $(LDFLAGS)
+	$(CC) $(CFLAGS) -o $@ $^ $(LDFLAGS)
 	@size $@
 
 clean:
