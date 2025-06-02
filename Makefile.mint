@@ -1,8 +1,12 @@
 PREFIX=m68k-atari-mint
-CC=$(PREFIX)-gcc
+CC=$(PREFIX)-gcc-4.6.4
 
-CFLAGS = -g -Wall -pedantic -O3
+CFLAGS = -g -Wall -pedantic -O3 -std=c99 -mshort -mfastcall
 LDFLAGS =
+
+LIBCMINI_DIR=$(HOME)/src/libcmini/build
+LINK=-nostdlib $(LIBCMINI_DIR)/crt0.o $< -L$(LIBCMINI_DIR)/mshort/mfastcall $(LDFLAGS) -lcmini -lgcc -o $@
+#LINK=$< $(LDFLAGS) -o $@
 
 bin = AUTO/8080TEST.PRG
 src = $(wildcard *.c)
@@ -13,9 +17,10 @@ obj = $(src:.c=.o)
 all: $(bin)
 
 $(bin): i8080_tests.c
-	$(CC) -o $@ $^ $(LDFLAGS)
+	$(CC) $(CFLAGS) $(LINK)
 	$(PREFIX)-objdump -drwC $@ > $@.s
 	@$(PREFIX)-size -A $@
+	@du -b $@
 
 clean:
 	-rm $(bin) $(obj)

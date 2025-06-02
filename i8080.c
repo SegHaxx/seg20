@@ -186,7 +186,7 @@ static inline void i8080_sub(
 
 // adds a word to HL
 static inline void i8080_dad(i8080* const c, uint16_t val) {
-  c->cf = ((i8080_get_hl(c) + val) >> 16) & 1;
+  c->cf = (((int32_t)i8080_get_hl(c) + val) >> 16) & 1;
   i8080_set_hl(c, i8080_get_hl(c) + val);
 }
 

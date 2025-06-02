@@ -26,22 +26,25 @@ static uint8_t port_in(void* userdata, uint8_t port) {
 }
 
 static bool port_out(void* userdata, uint8_t port, uint8_t value) {
-  i8080* const c = (i8080*) userdata;
+	i8080* const c = (i8080*) userdata;
 
-  if(port==0){test_finished=1;return false;}
-  if (port == 1) {
-    uint8_t operation = c->c;
+	if(port==0){test_finished=1;return false;}
+	if (port == 1) {
+		uint8_t operation = c->c;
 
-    if (operation == 2) { // print a character stored in E
-      printf("%c", c->e);
-    } else if (operation == 9) { // print from memory at (DE) until '$' char
-      uint16_t addr = (c->d << 8) | c->e;
-      do {
-        printf("%c", rb(c, addr++));
-      } while (rb(c, addr) != '$');
-    }
-  }
-  return true;
+		if (operation == 2) { // print a character stored in E
+			if(c->e=='\n') fputc('\r',stdout);
+			fputc(c->e,stdout);
+		} else if (operation == 9) { // print from memory at (DE) until '$' char
+			uint16_t addr = (c->d << 8) | c->e;
+			do {
+				char out=rb(c, addr++);
+				if(out=='\n') fputc('\r',stdout);
+				fputc(out,stdout);
+			} while (rb(c, addr) != '$');
+		}
+	}
+	return true;
 }
 
 static inline int load_file(const char* filename, uint16_t addr) {
@@ -87,7 +90,7 @@ static inline void run_test(
   if (load_file(filename, 0x100) != 0) {
     return;
   }
-  printf("*** TEST: %s\n", filename);
+  printf("*** TEST: %s\r\n", filename);
 
   c->pc = 0x100;
 
@@ -111,11 +114,11 @@ static inline void run_test(
   ticks=time_msec()-ticks;
 
   long long diff = cyc_expected - c->cyc;
-  printf("\n*** %lu instructions executed on %lu cycles"
-         " (expected=%llu, diff=%lld)\n",
+  printf("\r\n*** %lu instructions executed on %lu cycles"
+         " (expected=%llu, diff=%lld)\r\n",
       nb_instructions, c->cyc, cyc_expected, diff);
   double seconds=(double)ticks/1000.0;
-  printf("%.2f sec %.2f cycles/sec\n\n",seconds,(double)c->cyc/seconds);
+  printf("%.2f sec %.2f cycles/sec\r\n\r\n",seconds,(double)c->cyc/seconds);
 }
 
 int main(void) {
