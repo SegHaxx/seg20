@@ -1,7 +1,7 @@
 PREFIX=i586-pc-msdosdjgpp
 CC=$(PREFIX)-gcc
 
-CFLAGS = -g -Wall -pedantic -O3
+CFLAGS = -g -Wall -pedantic -Ofast -march=i386 -mtune=i586
 LDFLAGS =
 
 bin = 8080TEST.EXE
