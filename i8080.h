@@ -6,6 +6,11 @@
 #include <stdbool.h>
 
 typedef struct i8080 {
+	uint8_t a;
+	uint8_t flags;
+	uint8_t b,c, d,e;
+	uint8_t h,l; // registers
+	uint16_t pc, sp; // program counter, stack pointer
   // memory + io interface
   uint8_t* mem;
   uint8_t (*port_in)(void*, uint8_t); // user function to read from port
@@ -14,8 +19,6 @@ typedef struct i8080 {
 
   unsigned long cyc; // cycle count
 
-  uint16_t pc, sp; // program counter, stack pointer
-  uint8_t a, b, c, d, e, h, l, flags; // registers
   uint8_t interrupt_vector;
   uint8_t interrupt_delay;
   // flags: sign, zero, half-carry, parity, carry, interrupt flip-flop
