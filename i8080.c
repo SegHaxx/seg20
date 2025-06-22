@@ -755,7 +755,8 @@ void i8080_init(i8080* const c) {
 }
 
 // 
-long i8080_run(i8080* const c) {
+long i8080_run(i8080* const c,bool debug) {
+	if(debug) i8080_debug_output(c, true);
 	long count=0;
 	while(1){
 		uint8_t opcode;
@@ -771,6 +772,7 @@ long i8080_run(i8080* const c) {
 			if (c->halted) continue;
 			opcode=i8080_next_byte(c);
 		}
+		if(debug) i8080_debug_output(c, true);
 		++count;
 		if(!i8080_execute(c,opcode)) return count;
 	}
@@ -793,16 +795,37 @@ void i8080_debug_output(i8080* const c, bool print_disassembly) {
   f |= 1 << 1; // bit 1 is always 1
   f |= c->cf << 0;
 
-  printf("PC: %04X, AF: %04X, BC: %04X, DE: %04X, HL: %04X, SP: %04X, CYC: %lu",
-      c->pc, c->a << 8 | f, i8080_get_bc(c), i8080_get_de(c), i8080_get_hl(c),
-      c->sp, c->cyc);
+  print("PC:");
+  print_hex_u16(c->pc);
+  printc(' ');
+  print_hex_u8(i8080_rb(c, c->pc  ));
+  printc(' ');
+  print_hex_u8(i8080_rb(c, c->pc+1));
+  printc(' ');
+  print_hex_u8(i8080_rb(c, c->pc+2));
+  printc(' ');
+  print_hex_u8(i8080_rb(c, c->pc+3));
 
-  printf("\t(%02X %02X %02X %02X)", i8080_rb(c, c->pc), i8080_rb(c, c->pc + 1),
-      i8080_rb(c, c->pc + 2), i8080_rb(c, c->pc + 3));
+  printc(' ');
+  print_hex_u8(f);
 
-  if (print_disassembly) {
-    printf(" - %s", DISASSEMBLE_TABLE[i8080_rb(c, c->pc)]);
+  print(" A:");
+  print_hex_u8(c->a);
+  print(" BC:");
+  print_hex_u16(i8080_get_bc(c));
+  print(" DE:");
+  print_hex_u16(i8080_get_de(c));
+  print(" HL:");
+  print_hex_u16(i8080_get_hl(c));
+  print(" SP:");
+  print_hex_u16(c->sp);
+  print(" T:");
+  printi(c->cyc);
+
+  if(print_disassembly){
+	  printc(' ');
+	  print(DISASSEMBLE_TABLE[i8080_rb(c, c->pc)]);
   }
 
-  printf("\n");
+  print(NL);
 }

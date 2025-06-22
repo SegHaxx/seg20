@@ -25,7 +25,7 @@ typedef struct i8080 {
 } i8080;
 
 void i8080_init(i8080* const c);
-long i8080_run(i8080* const c);
+long i8080_run(i8080* const c,bool);
 void i8080_interrupt(i8080* const c, uint8_t opcode);
 void i8080_debug_output(i8080* const c, bool print_disassembly);
 

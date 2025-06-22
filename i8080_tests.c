@@ -5,6 +5,10 @@
 #include <stdlib.h>
 #include <string.h>
 #include <time.h>
+
+#include "portable/print.h"
+#include "portable/timer.h"
+
 #include "i8080.h"
 #include "i8080.c"
 
@@ -33,14 +37,14 @@ static bool port_out(void* userdata, uint8_t port, uint8_t value) {
 		uint8_t operation = c->c;
 
 		if (operation == 2) { // print a character stored in E
-			if(c->e=='\n') fputc('\r',stdout);
-			fputc(c->e,stdout);
+			if(c->e=='\n'){print(NL);}
+			else{printc(c->e);}
 		} else if (operation == 9) { // print from memory at (DE) until '$' char
 			uint16_t addr = (c->d << 8) | c->e;
 			do {
 				char out=rb(c, addr++);
-				if(out=='\n') fputc('\r',stdout);
-				fputc(out,stdout);
+				if(out=='\n'){print(NL);}
+				else{printc(out);}
 			} while (rb(c, addr) != '$');
 		}
 	}
@@ -50,7 +54,7 @@ static bool port_out(void* userdata, uint8_t port, uint8_t value) {
 static inline int load_file(const char* filename, uint16_t addr) {
   FILE* f = fopen(filename, "rb");
   if (f == NULL) {
-    fprintf(stderr, "error: can't open file '%s'.\n", filename);
+    //fprintf(stderr, "error: can't open file '%s'.\n", filename);
     return 1;
   }
 
@@ -60,22 +64,20 @@ static inline int load_file(const char* filename, uint16_t addr) {
   rewind(f);
 
   if (file_size + addr >= MEMORY_SIZE) {
-    fprintf(stderr, "error: file %s can't fit in memory.\n", filename);
+    //fprintf(stderr, "error: file %s can't fit in memory.\n", filename);
     return 1;
   }
 
   // copying the bytes in memory:
   size_t result = fread(&memory[addr], sizeof(uint8_t), file_size, f);
   if (result != file_size) {
-    fprintf(stderr, "error: while reading file '%s'\n", filename);
+    //fprintf(stderr, "error: while reading file '%s'\n", filename);
     return 1;
   }
 
   fclose(f);
   return 0;
 }
-
-#include "portable/timer.h"
 
 static inline void run_test(
     i8080* const c, const char* filename, unsigned long long cyc_expected) {
@@ -89,7 +91,9 @@ static inline void run_test(
   if (load_file(filename, 0x100) != 0) {
     return;
   }
-  printf("*** TEST: %s\r\n", filename);
+  print("*** TEST: ");
+  print(filename);
+  print(NL);
 
   c->pc = 0x100;
 
@@ -109,15 +113,28 @@ static inline void run_test(
     // warning: will output multiple GB of data for the whole test suite
     // i8080_debug_output(c, false);
 
-	long nb_instructions=i8080_run(c);
+	long nb_instructions=i8080_run(c,false);
   ticks=time_msec()-ticks;
 
-  long long diff = cyc_expected - c->cyc;
-  printf("\r\n*** %lu instructions executed on %lu cycles"
-         " (expected=%llu, diff=%lld)\r\n",
-      nb_instructions, c->cyc, cyc_expected, diff);
-  double seconds=(double)ticks/1000.0;
-  printf("%.2f sec %.2f cycles/sec\r\n\r\n",seconds,(double)c->cyc/seconds);
+  print(NL "*** ");
+  printi(nb_instructions);
+  print(" instructions executed in ");
+  printi(c->cyc);
+  print(" cycles (expected=");
+  printi(cyc_expected);
+  print(", diff=");
+  printi(cyc_expected-c->cyc);
+  print(")" NL);
+  print_u32_d((uint32_t)ticks,3);
+  print(" sec ");
+  double khz=(double)c->cyc/(double)ticks;
+  if(khz<1000.0){
+	  print_u32_d((uint32_t)(1000.0*khz),3);
+	  print(" khz" NL NL);
+  }else{
+	  print_u32_d((uint32_t)khz,3);
+	  print(" mhz" NL NL);
+  }
 }
 
 int main(void) {
