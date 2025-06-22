@@ -14,7 +14,7 @@
 
 // memory callbacks
 #define MEMORY_SIZE 0x10000
-static uint8_t* memory = NULL;
+static uint8_t memory[MEMORY_SIZE]={0};
 static bool test_finished = 0;
 
 static uint8_t rb(void* userdata, uint16_t addr) {
@@ -138,11 +138,6 @@ static inline void run_test(
 }
 
 int main(void) {
-  memory = malloc(MEMORY_SIZE);
-  if (memory == NULL) {
-    return 1;
-  }
-
   i8080 cpu;
   run_test(&cpu, "tests/TST8080.COM", 4924LU);
   run_test(&cpu, "tests/8080PRE.COM", 7817LU);
