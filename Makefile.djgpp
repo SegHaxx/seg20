@@ -4,7 +4,7 @@ CC=$(PREFIX)-gcc
 CFLAGS = -g -Wall -pedantic -Ofast -march=i386 -mtune=i586
 LDFLAGS =
 
-bin = 8080TEST.EXE
+TARGETS=8080TEST.EXE SEG20.EXE
 src = $(wildcard *.c)
 obj = $(src:.c=.o)
 
@@ -12,12 +12,18 @@ obj = $(src:.c=.o)
 
 all: $(bin)
 
-$(bin): i8080_tests.c
+8080TEST.EXE: i8080_tests.c
 	$(CC) $(CFLAGS) -o $@ $^ $(LDFLAGS)
 	@$(PREFIX)-size $@
+	@du -b $@
+
+SEG20.EXE: seg20.c
+	$(CC) $(CFLAGS) -o $@ $^ $(LDFLAGS)
+	@$(PREFIX)-size $@
+	@du -b $@
 
 clean:
-	-rm $(bin) $(obj)
+	-rm $(TARGETS) $(obj)
 
-install: $(bin)
+install: $(TARGETS)
 	cp -p $^ ~/Emulation/DOS/C/code/8080/
