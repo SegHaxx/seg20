@@ -787,14 +787,6 @@ void i8080_interrupt(i8080* const c, uint8_t opcode) {
 // outputs a debug trace of the emulator state to the standard output,
 // including registers and flags
 void i8080_debug_output(i8080* const c, bool print_disassembly) {
-  uint8_t f = 0;
-  f |= get_sf(c) << 7;
-  f |= get_zf(c) << 6;
-  f |= get_hf(c) << 4;
-  f |= get_pf(c) << 2;
-  f |= 1 << 1; // bit 1 is always 1
-  f |= c->cf << 0;
-
   print("PC:");
   print_hex_u16(c->pc);
   printc(' ');
@@ -807,7 +799,11 @@ void i8080_debug_output(i8080* const c, bool print_disassembly) {
   print_hex_u8(i8080_rb(c, c->pc+3));
 
   printc(' ');
-  print_hex_u8(f);
+  printc(get_sf(c)?'S':'-');
+  printc(get_zf(c)?'Z':'-');
+  printc(get_hf(c)?'H':'-');
+  printc(get_pf(c)?'P':'-');
+  printc(    c->cf?'C':'-');
 
   print(" A:");
   print_hex_u8(c->a);
