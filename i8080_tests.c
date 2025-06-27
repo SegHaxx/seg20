@@ -80,7 +80,7 @@ static inline int load_file(const char* filename, uint16_t addr) {
 }
 
 static inline void run_test(
-    i8080* const c, const char* filename, unsigned long long cyc_expected) {
+    i8080* const c, const char* filename, uint64_t cyc_expected) {
   i8080_init(c);
   c->userdata = c;
   c->mem=memory;
@@ -113,17 +113,17 @@ static inline void run_test(
     // warning: will output multiple GB of data for the whole test suite
     // i8080_debug_output(c, false);
 
-	long nb_instructions=i8080_run(c,false);
+  uint64_t nb_instructions=i8080_run(c,false);
   ticks=time_msec()-ticks;
 
   print(NL "*** ");
-  printi(nb_instructions);
+  print_u64(nb_instructions);
   print(" instructions executed in ");
-  printi(c->cyc);
+  print_u64(c->cyc);
   print(" cycles (expected=");
-  printi(cyc_expected);
+  print_u64(cyc_expected);
   print(", diff=");
-  printi(cyc_expected-c->cyc);
+  print_u64(cyc_expected-c->cyc);
   print(")" NL);
   print_u32_d((uint32_t)ticks,3);
   print(" sec ");

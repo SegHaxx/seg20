@@ -17,7 +17,7 @@ typedef struct i8080 {
   bool (*port_out)(void*, uint8_t, uint8_t); // same for writing to port
   void* userdata; // user custom pointer
 
-  unsigned long cyc; // cycle count
+  uint64_t cyc; // cycle count
 
   uint8_t interrupt_vector;
   uint8_t interrupt_delay;
