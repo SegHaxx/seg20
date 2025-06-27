@@ -138,14 +138,15 @@ static inline void run_test(
 }
 
 int main(void) {
-  i8080 cpu;
 #ifdef __MINT__
   Cconws("\33v");
 #endif
+  i8080 cpu;
   run_test(&cpu, "tests/TST8080.COM", 4924LU);
   run_test(&cpu, "tests/8080PRE.COM", 7817LU);
   run_test(&cpu, "tests/CPUTEST.COM", 255653383LU);
   run_test(&cpu, "tests/8080EXM.COM", 23803381171LU);
 
+  pause_if_gui();
   return 0;
 }
