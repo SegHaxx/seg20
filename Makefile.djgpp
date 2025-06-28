@@ -1,7 +1,7 @@
 PREFIX=i586-pc-msdosdjgpp
 CC=$(PREFIX)-gcc
 
-CFLAGS=-g -Wall -pedantic -Ofast -march=i386 -mtune=i586
+CFLAGS=-g -Wall -pedantic -Os -march=i386 -mtune=i586
 CFLAGS+=-Iportable
 LDFLAGS=
 

@@ -1,7 +1,7 @@
 PREFIX=m68k-atari-mint
 CC=$(PREFIX)-gcc-4.6.4
 
-CFLAGS=-g -Wall -pedantic -O3 -std=c99 -mshort -mfastcall
+CFLAGS=-g -Wall -pedantic -Os -std=c99 -mshort -mfastcall
 CFLAGS+=-Wno-unused-value
 CFLAGS+=-Iportable
 LDFLAGS =

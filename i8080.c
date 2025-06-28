@@ -1,6 +1,9 @@
 #include "i8080.h"
 #include <limits.h>
 
+#pragma GCC push_options
+#pragma GCC optimize ("Ofast")
+
 // this array defines the number of cycles one opcode takes.
 // note that there are some special cases: conditional RETs and CALLs
 // add +6 cycles if the condition is met
@@ -727,34 +730,6 @@ static unsigned int i8080_execute(i8080* const c, uint8_t opcode) {
   return tstates;
 }
 
-// initialises the emulator with default values
-void i8080_init(i8080* const c) {
-  c->port_in = NULL;
-  c->port_out = NULL;
-  c->userdata = NULL;
-
-  c->pc = 0;
-  c->sp = 0;
-
-  c->a = 0;
-  c->b = 0;
-  c->c = 0;
-  c->d = 0;
-  c->e = 0;
-  c->h = 0;
-  c->l = 0;
-
-  c->cf = 0;
-  c->iff = 0;
-
-  c->halted = 0;
-  c->interrupt_pending = 0;
-  c->interrupt_vector = 0;
-  c->interrupt_delay = 0;
-  c->flags=0;
-  flags_init();
-}
-
 // 
 static unsigned int i8080_run(i8080* const c,unsigned int max_t, bool debug) {
 	if(!max_t) max_t=UINT_MAX-18;
@@ -786,6 +761,36 @@ static unsigned int i8080_run(i8080* const c,unsigned int max_t, bool debug) {
 void i8080_interrupt(i8080* const c, uint8_t opcode) {
   c->interrupt_pending = 1;
   c->interrupt_vector = opcode;
+}
+
+#pragma GCC pop_options
+
+// initialises the emulator with default values
+void i8080_init(i8080* const c) {
+  c->port_in = NULL;
+  c->port_out = NULL;
+  c->userdata = NULL;
+
+  c->pc = 0;
+  c->sp = 0;
+
+  c->a = 0;
+  c->b = 0;
+  c->c = 0;
+  c->d = 0;
+  c->e = 0;
+  c->h = 0;
+  c->l = 0;
+
+  c->cf = 0;
+  c->iff = 0;
+
+  c->halted = 0;
+  c->interrupt_pending = 0;
+  c->interrupt_vector = 0;
+  c->interrupt_delay = 0;
+  c->flags=0;
+  flags_init();
 }
 
 // outputs a debug trace of the emulator state to the standard output,
