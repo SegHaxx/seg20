@@ -1,4 +1,5 @@
 #include "i8080.h"
+#include <limits.h>
 
 // this array defines the number of cycles one opcode takes.
 // note that there are some special cases: conditional RETs and CALLs
@@ -289,12 +290,13 @@ static inline void i8080_call(i8080* const c, uint16_t addr) {
 }
 
 // calls to next word in memory if a condition is met
-static inline void i8080_cond_call(i8080* const c, bool condition) {
+static inline int i8080_cond_call(i8080* const c, bool condition) {
   uint16_t addr = i8080_next_word(c);
   if (condition) {
     i8080_call(c, addr);
-    c->cyc += 6;
+    return 6;
   }
+  return 0;
 }
 
 // returns from subroutine
@@ -303,11 +305,12 @@ static inline void i8080_ret(i8080* const c) {
 }
 
 // returns from subroutine if a condition is met
-static inline void i8080_cond_ret(i8080* const c, bool condition) {
+static inline int i8080_cond_ret(i8080* const c, bool condition) {
   if (condition) {
     i8080_ret(c);
-    c->cyc += 6;
+    return 6;
   }
+  return 0;
 }
 
 // pushes register A and the flags into the stack
@@ -395,8 +398,8 @@ static inline void i8080_xthl(i8080* const c) {
 }
 
 // executes one opcode
-static inline bool i8080_execute(i8080* const c, uint8_t opcode) {
-  c->cyc += OPCODES_CYCLES[opcode];
+static unsigned int i8080_execute(i8080* const c, uint8_t opcode) {
+  unsigned int tstates=OPCODES_CYCLES[opcode];
 
   // when DI is executed, interrupts won't be serviced
   // until the end of next instruction:
@@ -662,24 +665,24 @@ static inline bool i8080_execute(i8080* const c, uint8_t opcode) {
   case 0xE9: c->pc = i8080_get_hl(c); break; // PCHL
   case 0xCD: i8080_call(c, i8080_next_word(c)); break; // CALL
 
-  case 0xC4: i8080_cond_call(c, get_zf(c) == 0); break; // CNZ
-  case 0xCC: i8080_cond_call(c, get_zf(c) == 1); break; // CZ
-  case 0xD4: i8080_cond_call(c, c->cf == 0); break; // CNC
-  case 0xDC: i8080_cond_call(c, c->cf == 1); break; // CC
-  case 0xE4: i8080_cond_call(c, get_pf(c) == 0); break; // CPO
-  case 0xEC: i8080_cond_call(c, get_pf(c) == 1); break; // CPE
-  case 0xF4: i8080_cond_call(c, get_sf(c) == 0); break; // CP
-  case 0xFC: i8080_cond_call(c, get_sf(c) == 1); break; // CM
+  case 0xC4: tstates+=i8080_cond_call(c, get_zf(c) == 0); break; // CNZ
+  case 0xCC: tstates+=i8080_cond_call(c, get_zf(c) == 1); break; // CZ
+  case 0xD4: tstates+=i8080_cond_call(c, c->cf == 0); break; // CNC
+  case 0xDC: tstates+=i8080_cond_call(c, c->cf == 1); break; // CC
+  case 0xE4: tstates+=i8080_cond_call(c, get_pf(c) == 0); break; // CPO
+  case 0xEC: tstates+=i8080_cond_call(c, get_pf(c) == 1); break; // CPE
+  case 0xF4: tstates+=i8080_cond_call(c, get_sf(c) == 0); break; // CP
+  case 0xFC: tstates+=i8080_cond_call(c, get_sf(c) == 1); break; // CM
 
   case 0xC9: i8080_ret(c); break; // RET
-  case 0xC0: i8080_cond_ret(c, get_zf(c) == 0); break; // RNZ
-  case 0xC8: i8080_cond_ret(c, get_zf(c) == 1); break; // RZ
-  case 0xD0: i8080_cond_ret(c, c->cf == 0); break; // RNC
-  case 0xD8: i8080_cond_ret(c, c->cf == 1); break; // RC
-  case 0xE0: i8080_cond_ret(c, get_pf(c) == 0); break; // RPO
-  case 0xE8: i8080_cond_ret(c, get_pf(c) == 1); break; // RPE
-  case 0xF0: i8080_cond_ret(c, get_sf(c) == 0); break; // RP
-  case 0xF8: i8080_cond_ret(c, get_sf(c) == 1); break; // RM
+  case 0xC0: tstates+=i8080_cond_ret(c, get_zf(c) == 0); break; // RNZ
+  case 0xC8: tstates+=i8080_cond_ret(c, get_zf(c) == 1); break; // RZ
+  case 0xD0: tstates+=i8080_cond_ret(c, c->cf == 0); break; // RNC
+  case 0xD8: tstates+=i8080_cond_ret(c, c->cf == 1); break; // RC
+  case 0xE0: tstates+=i8080_cond_ret(c, get_pf(c) == 0); break; // RPO
+  case 0xE8: tstates+=i8080_cond_ret(c, get_pf(c) == 1); break; // RPE
+  case 0xF0: tstates+=i8080_cond_ret(c, get_sf(c) == 0); break; // RP
+  case 0xF8: tstates+=i8080_cond_ret(c, get_sf(c) == 1); break; // RM
 
   case 0xC7: i8080_call(c, 0x00); break; // RST 0
   case 0xCF: i8080_call(c, 0x08); break; // RST 1
@@ -702,7 +705,7 @@ static inline bool i8080_execute(i8080* const c, uint8_t opcode) {
   case 0xDB: c->a = c->port_in(c->userdata, i8080_next_byte(c)); break; // IN
   case 0xD3: // OUT
 				 if(!c->port_out(c->userdata, i8080_next_byte(c), c->a)){
-					 return false;
+					 c->halted=true;
 				 }
 				 break;
   case 0x08:
@@ -721,7 +724,7 @@ static inline bool i8080_execute(i8080* const c, uint8_t opcode) {
 
   case 0xCB: i8080_jmp(c, i8080_next_word(c)); break; // undocumented JMP
   }
-  return true;
+  return tstates;
 }
 
 // initialises the emulator with default values
@@ -729,8 +732,6 @@ void i8080_init(i8080* const c) {
   c->port_in = NULL;
   c->port_out = NULL;
   c->userdata = NULL;
-
-  c->cyc = 0;
 
   c->pc = 0;
   c->sp = 0;
@@ -755,10 +756,12 @@ void i8080_init(i8080* const c) {
 }
 
 // 
-long i8080_run(i8080* const c,bool debug) {
-	if(debug) i8080_debug_output(c, true);
-	long count=0;
-	while(1){
+static unsigned int i8080_run(i8080* const c,unsigned int max_t, bool debug) {
+	if(!max_t) max_t=UINT_MAX-18;
+	unsigned int tstates=0;
+	if(debug) i8080_debug_output(c,tstates,true);
+	c->count=0;
+	do{
 		uint8_t opcode;
 		// interrupt processing: if an interrupt is pending and IFF is set,
 		// we execute the interrupt vector passed by the user.
@@ -769,13 +772,14 @@ long i8080_run(i8080* const c,bool debug) {
 
 			opcode=c->interrupt_vector;
 		}else{
-			if (c->halted) continue;
+			if (c->halted) break;
 			opcode=i8080_next_byte(c);
 		}
-		if(debug) i8080_debug_output(c, true);
-		++count;
-		if(!i8080_execute(c,opcode)) return count;
-	}
+		tstates+=i8080_execute(c,opcode);
+		if(debug) i8080_debug_output(c,tstates,true);
+		++c->count;
+	}while(tstates<max_t);
+	return tstates;
 }
 
 // asks for an interrupt to be serviced
@@ -786,7 +790,7 @@ void i8080_interrupt(i8080* const c, uint8_t opcode) {
 
 // outputs a debug trace of the emulator state to the standard output,
 // including registers and flags
-void i8080_debug_output(i8080* const c, bool print_disassembly) {
+void i8080_debug_output(i8080* const c,unsigned int tstates,bool print_disassembly) {
   print("PC:");
   print_hex_u16(c->pc);
   printc(' ');
@@ -816,7 +820,7 @@ void i8080_debug_output(i8080* const c, bool print_disassembly) {
   print(" SP:");
   print_hex_u16(c->sp);
   print(" T:");
-  printi(c->cyc);
+  printu(tstates);
 
   if(print_disassembly){
 	  printc(' ');

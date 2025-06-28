@@ -113,21 +113,26 @@ static inline void run_test(
     // warning: will output multiple GB of data for the whole test suite
     // i8080_debug_output(c, false);
 
-  uint64_t nb_instructions=i8080_run(c,false);
+  uint64_t tstates=0;
+  uint64_t nb_instructions=0;
+  do{
+	  tstates+=i8080_run(c,0,false);
+	  nb_instructions+=c->count;
+  }while(!c->halted);
   ticks=time_msec()-ticks;
 
   print(NL "*** ");
   print_u64(nb_instructions);
   print(" instructions executed in ");
-  print_u64(c->cyc);
+  print_u64(tstates);
   print(" cycles (expected=");
   print_u64(cyc_expected);
   print(", diff=");
-  print_u64(cyc_expected-c->cyc);
+  print_u64(cyc_expected-tstates);
   print(")" NL);
   print_u32_d((uint32_t)ticks,3);
   print(" sec ");
-  double khz=(double)c->cyc/(double)ticks;
+  double khz=(double)tstates/(double)ticks;
   if(khz<1000.0){
 	  print_u32_d((uint32_t)(1000.0*khz),3);
 	  print(" khz" NL NL);

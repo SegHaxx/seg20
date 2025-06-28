@@ -17,7 +17,7 @@ typedef struct i8080 {
   bool (*port_out)(void*, uint8_t, uint8_t); // same for writing to port
   void* userdata; // user custom pointer
 
-  uint64_t cyc; // cycle count
+  unsigned int count; // instruction count
 
   uint8_t interrupt_vector;
   uint8_t interrupt_delay;
@@ -28,8 +28,8 @@ typedef struct i8080 {
 } i8080;
 
 void i8080_init(i8080* const c);
-long i8080_run(i8080* const c,bool);
+//unsigned int i8080_run(i8080* const c,unsigned int,bool);
 void i8080_interrupt(i8080* const c, uint8_t opcode);
-void i8080_debug_output(i8080* const c, bool print_disassembly);
+void i8080_debug_output(i8080* const c,unsigned int,bool print_disassembly);
 
 #endif // I8080_I8080_H_

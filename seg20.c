@@ -97,27 +97,31 @@ static void run_seg20(i8080* const c){
   //memory[0x0006] = 0x01;
   //memory[0x0007] = 0xC9;
 
-  long long ticks=time_msec();
+  uint64_t ticks=time_msec();
   test_finished = 0;
 
     // uncomment following line to have a debug output of machine state
     // warning: will output multiple GB of data for the whole test suite
   //i8080_debug_output(c, false);
 
-	long nb_instructions=i8080_run(c,true);
+  unsigned int tstates=i8080_run(c,0,false);
   ticks=time_msec()-ticks;
 
   print(NL "*** ");
-  printi(nb_instructions);
+  printu(c->count);
   print(" instructions executed in ");
-  printi(c->cyc);
+  printu(tstates);
   print(" cycles " NL);
   print_u32_d((uint32_t)((double)ticks/10.0),3);
   print(" sec ");
-  //print_u32_d((uint32_t)((double)c->cyc/((double)ticks/100.0)));
-  //print(" khz" NL NL);
-  print_u32_d((uint32_t)(0.1*((double)c->cyc/(double)ticks)),3);
-  print(" mhz" NL NL);
+  double khz=(double)tstates/(double)ticks;
+  if(khz<1000.0){
+	  print_u32_d((uint32_t)(1000.0*khz),3);
+	  print(" khz" NL NL);
+  }else{
+	  print_u32_d((uint32_t)khz,3);
+	  print(" mhz" NL NL);
+  }
 }
 
 int main(void) {
