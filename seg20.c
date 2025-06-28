@@ -50,34 +50,6 @@ static bool port_out(void* userdata, uint8_t port, uint8_t value) {
 	return true;
 }
 
-static inline int load_file(const char* filename, uint16_t addr) {
-  FILE* f = fopen(filename, "rb");
-  if (f == NULL) {
-    //fprintf(stderr, "error: can't open file '%s'.\n", filename);
-    return 1;
-  }
-
-  // file size check:
-  fseek(f, 0, SEEK_END);
-  size_t file_size = ftell(f);
-  rewind(f);
-
-  if (file_size + addr >= MEMORY_SIZE) {
-    //fprintf(stderr, "error: file %s can't fit in memory.\n", filename);
-    return 1;
-  }
-
-  // copying the bytes in memory:
-  size_t result = fread(&memory[addr], sizeof(uint8_t), file_size, f);
-  if (result != file_size) {
-    //fprintf(stderr, "error: while reading file '%s'\n", filename);
-    return 1;
-  }
-
-  fclose(f);
-  return 0;
-}
-
 static void run_seg20(i8080* const c){
   i8080_init(c);
   c->userdata = c;
