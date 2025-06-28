@@ -1,8 +1,9 @@
 TARGETS=i8080_tests seg20
 src = $(wildcard *.c)
 obj = $(src:.c=.o)
-CFLAGS = -g -Wall -pedantic -O3
-LDFLAGS =
+CFLAGS=-g -Wall -pedantic -Ofast
+CFLAGS+=-Iportable
+LDFLAGS=
 
 .PHONY: all clean
 

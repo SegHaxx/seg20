@@ -1,8 +1,9 @@
 PREFIX=i586-pc-msdosdjgpp
 CC=$(PREFIX)-gcc
 
-CFLAGS = -g -Wall -pedantic -Ofast -march=i386 -mtune=i586
-LDFLAGS =
+CFLAGS=-g -Wall -pedantic -Ofast -march=i386 -mtune=i586
+CFLAGS+=-Iportable
+LDFLAGS=
 
 TARGETS=8080TEST.EXE SEG20.EXE
 src = $(wildcard *.c)
