@@ -731,10 +731,10 @@ static unsigned int i8080_execute(i8080* const c, uint8_t opcode) {
 }
 
 // 
-static unsigned int i8080_run(i8080* const c,unsigned int max_t, bool debug) {
+static unsigned int i8080_run(i8080* const c,unsigned int max_t,const bool debug) {
 	if(!max_t) max_t=UINT_MAX-18;
 	unsigned int tstates=0;
-	if(debug) i8080_debug_output(c,tstates,true);
+	if(debug) i8080_debug_output(c,tstates);
 	c->count=0;
 	do{
 		uint8_t opcode;
@@ -751,7 +751,7 @@ static unsigned int i8080_run(i8080* const c,unsigned int max_t, bool debug) {
 			opcode=i8080_next_byte(c);
 		}
 		tstates+=i8080_execute(c,opcode);
-		if(debug) i8080_debug_output(c,tstates,true);
+		if(debug) i8080_debug_output(c,tstates);
 		++c->count;
 	}while(tstates<max_t);
 	return tstates;
@@ -795,7 +795,7 @@ void i8080_init(i8080* const c) {
 
 // outputs a debug trace of the emulator state to the standard output,
 // including registers and flags
-void i8080_debug_output(i8080* const c,unsigned int tstates,bool print_disassembly) {
+void i8080_debug_output(i8080* const c,const unsigned int tstates) {
   print("PC:");
   print_hex_u16(c->pc);
   printc(' ');
@@ -827,10 +827,8 @@ void i8080_debug_output(i8080* const c,unsigned int tstates,bool print_disassemb
   print(" T:");
   printu(tstates);
 
-  if(print_disassembly){
-	  printc(' ');
-	  print(DISASSEMBLE_TABLE[i8080_rb(c, c->pc)]);
-  }
+  printc(' ');
+  print(DISASSEMBLE_TABLE[i8080_rb(c, c->pc)]);
 
   print(NL);
 }
