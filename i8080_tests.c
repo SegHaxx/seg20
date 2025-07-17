@@ -1,10 +1,11 @@
 // This file uses the 8080 emulator to run the test suite (roms in cpu_tests
 // directory). It uses a simple array as memory.
 
-#include <stdio.h>
-#include <stdlib.h>
 #include <string.h>
-#include <time.h>
+
+#ifdef PICO_RP2040
+#include "pico/stdlib.h"
+#endif
 
 #include "portable/print.h"
 #include "portable/timer.h"
@@ -55,6 +56,7 @@ static inline int load_file(const char* filename, uint16_t addr) {
   FILE* f = fopen(filename, "rb");
   if (f == NULL) {
     //fprintf(stderr, "error: can't open file '%s'.\n", filename);
+    print("error: can't open file" NL);
     return 1;
   }
 
@@ -65,6 +67,7 @@ static inline int load_file(const char* filename, uint16_t addr) {
 
   if (file_size + addr >= MEMORY_SIZE) {
     //fprintf(stderr, "error: file %s can't fit in memory.\n", filename);
+    print("error: file can't fit in memory" NL);
     return 1;
   }
 
@@ -72,6 +75,7 @@ static inline int load_file(const char* filename, uint16_t addr) {
   size_t result = fread(&memory[addr], sizeof(uint8_t), file_size, f);
   if (result != file_size) {
     //fprintf(stderr, "error: while reading file '%s'\n", filename);
+    print("error: while reading file" NL);
     return 1;
   }
 
@@ -143,6 +147,9 @@ static inline void run_test(
 }
 
 int main(void) {
+#ifdef PICO_RP2040
+	stdio_init_all();
+#endif
 #ifdef __MINT__
   Cconws("\33v");
 #endif

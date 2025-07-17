@@ -3,6 +3,10 @@
 
 #include <string.h>
 
+#ifdef PICO_RP2040
+#include "pico/stdlib.h"
+#endif
+
 #include "portable/print.h"
 #include "portable/timer.h"
 
@@ -76,7 +80,7 @@ static void run_seg20(i8080* const c){
     // warning: will output multiple GB of data for the whole test suite
   //i8080_debug_output(c, false);
 
-  unsigned int tstates=i8080_run(c,0,false);
+  unsigned int tstates=i8080_run(c,0,true);
   ticks=time_msec()-ticks;
 
   print(NL "*** ");
@@ -97,9 +101,14 @@ static void run_seg20(i8080* const c){
 }
 
 int main(void) {
-  i8080 cpu;
-  memcpy(&memory[0xC000],&rom_solos,rom_solos_len);
-  run_seg20(&cpu);
+#ifdef PICO_RP2040
+	stdio_init_all();
+#endif
+	i8080 cpu;
+	memcpy(&memory[0xC000],&rom_solos,rom_solos_len);
+	while(1){
+		run_seg20(&cpu);
+	}
 
-  return 0;
+	return 0;
 }
