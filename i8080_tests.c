@@ -154,10 +154,15 @@ int main(void) {
   Cconws("\33v");
 #endif
   i8080 cpu;
-  run_test(&cpu, "tests/TST8080.COM", 4924LU);
-  run_test(&cpu, "tests/8080PRE.COM", 7817LU);
-  run_test(&cpu, "tests/CPUTEST.COM", 255653383LU);
-  run_test(&cpu, "tests/8080EXM.COM", 23803381171LU);
+#if 1
+#define PS "/"
+#else
+#define PS "\\"
+#endif
+  run_test(&cpu, "tests" PS "TST8080.COM", 4924LU);
+  run_test(&cpu, "tests" PS "8080PRE.COM", 7817LU);
+  run_test(&cpu, "tests" PS "CPUTEST.COM", 255653383LU);
+  run_test(&cpu, "tests" PS "8080EXM.COM", 23803381171LU);
 
   pause_if_gui();
   return 0;
