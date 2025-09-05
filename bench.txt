@@ -1,0 +1,31 @@
+* Atari ST
+
+orig TST8080.COM:     0.60 sec  8206.67 cycles/sec
+lut  TST8080.COM:     0.48 sec 10258.33 cycles/sec 125%
+     TST8080.COM:     0.42 sec 11.723 khz
+
+orig 8080PRE.COM:     0.52 sec 15032.69 cycles/sec 
+lut  8080PRE.COM:     0.36 sec 21713.89 cycles/sec 144%
+     8080PRE.COM:     0.32 sec 24.428 khz
+
+orig CPUTEST.COM: 13944.92 sec 18333.08 cycles/sec
+lut  CPUTEST.COM:  7347.80 sec 34793.19 cycles/sec 189%
+     CPUTEST.COM:  7172.74 sec 35.642 khz
+
+     8080EXM.COM: 754409.2 sec 31.552 khz
+
+* 486DX33
+
+orig TST8080.COM:   0.02  sec 289647.06 cycles/sec
+lut  TST8080.COM:   0.01  sec 351714.29 cycles/sec 121%
+     TST8080.COM:   0.014 sec 351.714 khz
+
+orig 8080PRE.COM:   0.01  sec 1563400.00 cycles/sec
+lut  8080PRE.COM:   0.00  sec 3908500.00 cycles/sec 250%
+     8080PRE.COM:   0.003 sec 2.605 mhz
+
+orig CPUTEST.COM: 186.56  sec 1370369.45 cycles/sec
+lut  CPUTEST.COM:  81.57  sec 3134197.83 cycles/sec 229%
+     CPUTEST.COM:  83.731 sec 3.053 mhz
+
+     8080EXM.COM: 6779.042 sec 3.511 mhz
