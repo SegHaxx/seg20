@@ -1,6 +1,3 @@
-// This file uses the 8080 emulator to run the test suite (roms in cpu_tests
-// directory). It uses a simple array as memory.
-
 #include <string.h>
 
 #ifdef PICO_RP2040
@@ -15,10 +12,8 @@
 
 #include "rom_solos.h"
 
-// memory callbacks
 #define MEMORY_SIZE 0x10000
 static uint8_t memory[MEMORY_SIZE]={0};
-static bool test_finished = 0;
 
 static uint8_t rb(void* userdata, uint16_t addr) {
   return memory[addr];
@@ -60,21 +55,7 @@ static void run_seg20(i8080* const c){
 
   c->pc=0xC000;
 
-  // inject "out 0,a" at 0x0000 (signal to stop the test)
-  //memory[0x0000] = 0xD3;
-  //memory[0x0001] = 0x00;
-
-  // inject "out 1,a" at 0x0005 (signal to output some characters)
-  //memory[0x0005] = 0xD3;
-  //memory[0x0006] = 0x01;
-  //memory[0x0007] = 0xC9;
-
   uint64_t ticks=time_msec();
-  test_finished = 0;
-
-    // uncomment following line to have a debug output of machine state
-    // warning: will output multiple GB of data for the whole test suite
-  //i8080_debug_output(c, false);
 
   unsigned int tstates=i8080_run(c,0,false);
   ticks=time_msec()-ticks;
