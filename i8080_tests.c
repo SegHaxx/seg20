@@ -48,6 +48,7 @@ static bool port_out(void* userdata, uint8_t port, uint8_t value) {
 				else{printc(out);}
 			} while (rb(c, addr) != '$');
 		}
+		print_flush();
 	}
 	return true;
 }
