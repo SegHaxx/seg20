@@ -32,24 +32,20 @@ static uint8_t port_in(void* userdata, uint8_t port) {
   return 0x00;
 }
 
-static bool port_out(void* userdata, uint8_t port, uint8_t value) {
+static bool sol20_port_out(void* userdata, uint8_t port, uint8_t value) {
 	i8080* const c = (i8080*) userdata;
 
-	if(port==0){test_finished=1;return false;}
-	if (port == 1) {
-		uint8_t operation = c->c;
-
-		if (operation == 2) { // print a character stored in E
-			if(c->e=='\n'){print(NL);}
-			else{printc(c->e);}
-		} else if (operation == 9) { // print from memory at (DE) until '$' char
-			uint16_t addr = (c->d << 8) | c->e;
-			do {
-				char out=rb(c, addr++);
-				if(out=='\n'){print(NL);}
-				else{printc(out);}
-			} while (rb(c, addr) != '$');
-		}
+	switch(port){
+		case 0xFA: break;
+		case 0xFE: break;
+		default:{
+					  print("unknown port_out: port=");
+					  print_hex_u8(port);
+					  print(" value=");
+					  print_hex_u8(value);
+					  print(NL);
+					  break;
+				  }
 	}
 	return true;
 }
@@ -59,7 +55,7 @@ static void run_seg20(i8080* const c){
   c->userdata = c;
   c->mem=memory;
   c->port_in = port_in;
-  c->port_out = port_out;
+  c->port_out = sol20_port_out;
   //memset(memory, 0, MEMORY_SIZE);
 
   c->pc=0xC000;
@@ -80,7 +76,7 @@ static void run_seg20(i8080* const c){
     // warning: will output multiple GB of data for the whole test suite
   //i8080_debug_output(c, false);
 
-  unsigned int tstates=i8080_run(c,0,true);
+  unsigned int tstates=i8080_run(c,0,false);
   ticks=time_msec()-ticks;
 
   print(NL "*** ");
