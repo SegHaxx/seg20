@@ -3,7 +3,8 @@ src = $(wildcard *.c)
 obj = $(src:.c=.o)
 CFLAGS=-g -Wall -pedantic -Os
 CFLAGS+=-Iportable
-LDFLAGS=
+CFLAGS+=$(shell pkg-config --cflags tinfo)
+LDFLAGS+=$(shell pkg-config --libs tinfo)
 
 .PHONY: all clean
 
