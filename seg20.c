@@ -1,3 +1,4 @@
+#include <stdlib.h>
 #include <string.h>
 
 #ifdef PICO_RP2040
@@ -36,10 +37,20 @@ static bool sol20_keybuf_status(void){
 	return sol20_keybuf_rp==sol20_keybuf_wp;
 }
 
+static uint8_t sol20_keybuf_get(void){
+	return sol20_keybuf[sol20_keybuf_rp++];
+}
+
+static void sol20_keybuf_put(uint8_t key){
+	sol20_keybuf[sol20_keybuf_wp++]=key;
 }
 
 static uint8_t port_in(void* userdata, uint8_t port) {
 	switch(port){
+		// STAPT: General Status Port
+		case 0xFA: return sol20_keybuf_status()?0x83:0x82;
+		// KDATA: Keyboard Data
+		case 0xFC: return sol20_keybuf_get();
 
 		default:{
 					  print("unknown port_in: port=");
@@ -102,6 +113,41 @@ static bool sol20_port_out(void* userdata, uint8_t port, uint8_t val){
 	return true;
 }
 
+#if !defined(__DJGPP__) && !defined(__MINT__) && !defined(__WATCOMC__) && \
+	!defined(__CC65__) && !defined(__Z88DK__) // unix?
+static void poll_keyboard(){
+	char buf[16];
+	int count=read(STDIN_FILENO,&buf,16);
+	if(count<1) return;
+	print("key:");
+	char* p=buf;
+	while(count--){
+		int key=*p++;
+		printc(' ');
+		print_hex_u16(key);
+		if(key<0x80) sol20_keybuf_put(key);
+	}
+	clreol();
+}
+#endif
+
+#if defined(__DJGPP__) || defined(__MINT__)
+static void poll_keyboard(){
+	if(!kbhit()) return;
+	print("key:");
+	while(kbhit()){
+		int key=getxkey();
+		printc(' ');
+		print_hex_u16(key);
+		switch(key){
+			case 0x253:{key=0x7f; break;} // DEL
+		}
+		if(key<0x80) sol20_keybuf_put(key);
+	}
+	clreol();
+}
+#endif
+
 static void run_seg20(i8080* const c){
   i8080_init(c);
   c->userdata = c;
@@ -143,23 +189,53 @@ static void run_seg20(i8080* const c){
 	  }
 	  clreol();
 	  cputs("\r\n");
-#ifdef __DJGPP__
-	  delay(100);
-#else
-#ifndef __MINT__
-	  usleep(100000);
-#endif
-#endif
+		poll_keyboard();
+	  print_flush();
   }
 }
 
+#if !defined(__DJGPP__) && !defined(__MINT__) && !defined(__WATCOMC__) && \
+	!defined(__CC65__) && !defined(__Z88DK__) // unix?
+
+#include <termios.h>
+#include <fcntl.h>
+
+struct termios saved_attributes;
+
+static void reset_input_mode(void){
+	tcsetattr(STDIN_FILENO,TCSANOW,&saved_attributes);}
+
+static void set_input_noncanonical(void){
+	struct termios tattr;
+	// Make sure stdin is a terminal
+	if (!isatty(STDIN_FILENO)){
+		print("not a terminal" NL);
+		exit(EXIT_FAILURE);}
+	// Save the terminal attributes so we can restore them later
+	tcgetattr(STDIN_FILENO,&saved_attributes);
+	atexit(reset_input_mode);
+	// Set the funny terminal modes
+	tcgetattr(STDIN_FILENO,&tattr);
+	tattr.c_lflag&=~(ICANON|ECHO); // Clear ICANON and ECHO
+	tattr.c_cc[VMIN]=1;
+	tattr.c_cc[VTIME]=0;
+	tcsetattr(STDIN_FILENO,TCSAFLUSH,&tattr);
+}
+#endif
+
 int main(void) {
-#ifndef __DJGPP__
-	uint16_t txt_w,txt_h;
-#else
+#if !defined(__DJGPP__) && !defined(__MINT__) && !defined(__WATCOMC__) && \
+	!defined(__CC65__) && !defined(__Z88DK__) // unix?
+	set_input_noncanonical();
+	int flags=fcntl(STDIN_FILENO,F_GETFL,0);
+	fcntl(STDIN_FILENO,F_SETFL,flags|O_NONBLOCK);
+#endif
+#ifdef __DJGPP__
 	uint8_t txt_w,txt_h;
 	textmode(C80);
 	_setcursortype(_NOCURSOR);
+#else
+	uint16_t txt_w,txt_h;
 #endif
 	screensize(&txt_w,&txt_h);
 #ifdef __MINT__
@@ -192,5 +268,5 @@ int main(void) {
 		run_seg20(&cpu);
 	//}
 
-	return 0;
+	return EXIT_SUCCESS;
 }
