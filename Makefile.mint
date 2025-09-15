@@ -1,5 +1,4 @@
-PREFIX=podman run --rm -v .:/src -v $(HOME)/src/libcmini:$(HOME)/src/libcmini -it m68k-atari-mint-gcc m68k-atari-mint
-#PREFIX=m68k-atari-mint
+PREFIX=m68k-atari-mint
 CC=$(PREFIX)-gcc-4.6.4
 
 CFLAGS=-g -Wall -pedantic -Os -std=c99 -mshort -mfastcall
