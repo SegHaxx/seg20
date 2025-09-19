@@ -53,7 +53,8 @@ static uint8_t port_in(void* userdata, uint8_t port) {
 		case 0xFC: return sol20_keybuf_get();
 
 		default:{
-					  print("unknown port_in: port=");
+					  gotoxy(1,21);
+					  print("unknown port_in: ");
 					  print_hex_u8(port);
 					  print(NL);
 					  break;
@@ -98,10 +99,11 @@ static bool sol20_port_out(void* userdata, uint8_t port, uint8_t val){
 	//i8080* const c = (i8080*) userdata;
 
 	switch(port){
-		case 0xFA: break;
+		//case 0xFA: break;
 		// VDM Display Parameter
 		case 0xFE: vdm_scr_pos=val; break;
 		default:{
+					  gotoxy(1,22);
 					  print("unknown port_out: port=");
 					  print_hex_u8(port);
 					  print(" value=");
@@ -148,6 +150,37 @@ static void poll_keyboard(){
 }
 #endif
 
+void seg20_display_cpu_state(i8080* const c){
+	gotoxy(1,4);
+	printc(' ');
+  printc(get_sf(c)?'S':'-');
+  printc(get_zf(c)?'Z':'-');
+  printc(get_hf(c)?'H':'-');
+  printc(get_pf(c)?'P':'-');
+  printc(    c->cf?'C':'-');
+
+  print(NL " A:");print_hex_u8(c->a);
+  print(NL "BC:");print_hex_u16(i8080_get_bc(c));
+  print(NL "DE:");print_hex_u16(i8080_get_de(c));
+  print(NL "HL:");print_hex_u16(i8080_get_hl(c));
+  print(NL "SP:");print_hex_u16(c->sp);
+  print(NL "PC:");print_hex_u16(c->pc);
+
+  print(NL " ");
+  print_hex_u8(i8080_rb(c, c->pc  ));
+	printc(' ');
+  print_hex_u8(i8080_rb(c, c->pc+1));
+  print(NL " ");
+  print_hex_u8(i8080_rb(c, c->pc+2));
+	printc(' ');
+  print_hex_u8(i8080_rb(c, c->pc+3));
+
+  print(NL);
+  print(DISASSEMBLE_TABLE[i8080_rb(c, c->pc)]);
+
+  print(NL);
+}
+
 static void run_seg20(i8080* const c){
   i8080_init(c);
   c->userdata = c;
@@ -167,13 +200,13 @@ static void run_seg20(i8080* const c){
 	  vdm_render();
 
 	  char buf[0xFF];
-	  gotoxy(1,19);
+	  gotoxy(1,18);
 	  str_u(buf,c->count);
 	  cputs(buf);
-	  cputs(" instructions executed in ");
+	  cputs(" instructions ");
 	  str_u(buf,tstates);
 	  cputs(buf);
-	  cputs(" cycles \r\n");
+	  cputs(" tstates executed in ");
 	  str_u32(buf,ticks);
 	  cputs(buf);
 	  cputs(" ticks ");
@@ -189,7 +222,8 @@ static void run_seg20(i8080* const c){
 	  }
 	  clreol();
 	  cputs("\r\n");
-		poll_keyboard();
+	  seg20_display_cpu_state(c);
+	  poll_keyboard();
 	  print_flush();
   }
 }
@@ -232,13 +266,16 @@ int main(void) {
 #endif
 #ifdef __DJGPP__
 	uint8_t txt_w,txt_h;
-	textmode(C80);
+	//textmode(C80);
+	//_set_screen_lines(28);
 	_setcursortype(_NOCURSOR);
 #else
 	uint16_t txt_w,txt_h;
 #endif
-	screensize(&txt_w,&txt_h);
 #ifdef __MINT__
+	Cursconf(0,0);
+#endif
+#if 0
 	Cursconf(0,0);
 	Cconws("\33v");	
 	for(int i=0;i<16;++i){
@@ -255,6 +292,7 @@ int main(void) {
 	Cconws("\33c");
 	Cconout(15);
 #endif
+	screensize(&txt_w,&txt_h);
 	clrscr();
 	inverse_on();
 	gotoxy(8,1);
