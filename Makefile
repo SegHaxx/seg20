@@ -19,4 +19,4 @@ seg20: seg20.c
 	@size $@
 
 clean:
-	-rm $(TARGETS) $(obj)
+	rm -f $(TARGETS) $(obj)
